@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="超慢跑節拍器，幫助你掌握節奏，享受跑步的樂趣。">
+    <meta name="keywords" content="超慢跑節拍器, 節拍器, 跑步, 節奏, 超慢跑">
+    <meta name="author" content="Tungying Li">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <title>超慢跑節拍器</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e0f7fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #007bb5;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        button, input[type="range"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        button {
+            background-color: #007bb5;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #005f8a;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        #bpmValue {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        #stopwatch {
+            font-size: 48px;
+            font-weight: bold;
+            color: #007bb5;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 16px;
+            margin-top: 20px;
+            display: block;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>超慢跑節拍器</h1>
+        <div id="stopwatch">
+            <span id="minutes">00</span>:<span id="seconds">00</span>:<span id="milliseconds">00</span>
+        </div>
+        <label for="bpm">節拍速度 (BPM): </label>
+        <span id="bpmValue">180</span>
+        <br>
+        <input type="range" id="bpm" value="180" min="100" max="260" step="5">
+        <br>
+        <label for="volume">音量控制:            </label>
+        <input type="range" id="volume" value="0.2" min="0" max="0.4" step="0.02">
+        <br>
+        <button id="startBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+        </button>
+        <button id="pauseBtn" class="button">
+            <!-- Pause SVG Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+        </button>
+        <button id="stopBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M6 6h12v12H6z"/>
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        let timer = null;
+        let audio = new Audio('https://www.soundjay.com/buttons/sounds/button-29.mp3');
+        audio.volume = 0.2; // Set initial volume to a quieter level
+
+        function playSound() {
+            audio.currentTime = 0;
+            audio.play();
+            timer = setTimeout(playSound, 60000 / document.getElementById('bpm').value);
+        }
+
+        document.getElementById('bpm').addEventListener('input', function() {
+            document.getElementById('bpmValue').textContent = this.value;
+            if (timer !== null) {
+                clearTimeout(timer);
+                playSound();
+            }
+        });
+
+        // Volume control
+        document.getElementById('volume').addEventListener('input', function() {
+            audio.volume = this.value;
+        });
+
+        // Stopwatch functionality
+        let stopwatchInterval = null;
+        let stopwatchTime = 0;
+
+        function updateStopwatchDisplay() {
+            const milliseconds = Math.floor((stopwatchTime % 1000) / 10);
+            const seconds = Math.floor((stopwatchTime / 1000) % 60);
+            const minutes = Math.floor((stopwatchTime / (1000 * 60)) % 60);
+
+            document.getElementById('milliseconds').textContent = milliseconds.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+        }
+
+        document.getElementById('startBtn').addEventListener('click', function() {
+            // Start metronome
+            if (timer === null) {
+                playSound();
+            }
+
+            // Start stopwatch
+            if (stopwatchInterval === null) {
+                const startTime = Date.now() - stopwatchTime;
+                stopwatchInterval = setInterval(function() {
+                    stopwatchTime = Date.now() - startTime;
+                    updateStopwatchDisplay();
+                }, 10);
+            }
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', function() {
+            // Pause metronome
+            if (timer !== null) {
+                clearTimeout(timer);
+                timer = null;
+            }
+
+            // Pause stopwatch
+            if (stopwatchInterval !== null) {
+                clearInterval(stopwatchInterval);
+                stopwatchInterval = null;
+            }
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', function() {
+            // Stop metronome
+            if (timer !== null) {
+                clearTimeout(timer);
+                timer = null;
+            }
+
+            // Stop and reset stopwatch
+            if (stopwatchInterval !== null) {
+                clearInterval(stopwatchInterval);
+                stopwatchInterval = null;
+            }
+            stopwatchTime = 0; // Reset the stopwatch time
+            updateStopwatchDisplay(); // Update the display to show 00:00:00
+        });
+    </script>
+</body>
+</html>
