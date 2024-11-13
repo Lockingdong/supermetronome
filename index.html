@@ -118,28 +118,13 @@
 
     <script>
         let timer = null;
-        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let audioBuffer = null;
-
-        // Load and decode audio data
-        fetch('button.mp3')
-            .then(response => response.arrayBuffer())
-            .then(data => audioContext.decodeAudioData(data))
-            .then(buffer => {
-                audioBuffer = buffer;
-            })
-            .catch(error => console.error("Audio loading failed:", error));
+        let audio = new Audio('button.mp3');
+        audio.volume = 0.2; // Set initial volume to a quieter level
 
         function playSound() {
-            if (audioBuffer) {
-                const source = audioContext.createBufferSource();
-                source.buffer = audioBuffer;
-                const gainNode = audioContext.createGain();
-                gainNode.gain.value = 0.2; // Set initial volume to a quieter level
-                source.connect(gainNode).connect(audioContext.destination);
-                source.start(0);
-                timer = setTimeout(playSound, 60000 / document.getElementById('bpm').value);
-            }
+            audio.currentTime = 0;
+            audio.play();
+            timer = setTimeout(playSound, 60000 / document.getElementById('bpm').value);
         }
 
         document.getElementById('bpm').addEventListener('input', function() {
@@ -152,9 +137,7 @@
 
         // Volume control
         document.getElementById('volume').addEventListener('input', function() {
-            if (audioContext) {
-                audioContext.gain.value = this.value;
-            }
+            audio.volume = this.value;
         });
 
         // Stopwatch functionality
