@@ -120,11 +120,18 @@
         let timer = null;
         let audio = new Audio('https://lockingdong.github.io/supermetronome/button.mp3');
         audio.volume = 0.2; // Set initial volume to a quieter level
+        let countdownInterval = null;
 
         function playSound() {
             audio.currentTime = 0;
             audio.play();
             timer = setTimeout(playSound, 60000 / document.getElementById('bpm').value);
+        }
+
+        function startMetronome() {
+            if (timer === null) {
+                playSound();
+            }
         }
 
         document.getElementById('bpm').addEventListener('input', function() {
@@ -154,13 +161,13 @@
             document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
         }
 
-        document.getElementById('startBtn').addEventListener('click', function() {
-            // Start metronome
-            if (timer === null) {
-                playSound();
-            }
+        function updateCountdownDisplay(secondsRemaining) {
+            document.getElementById('milliseconds').textContent = '00';
+            document.getElementById('seconds').textContent = secondsRemaining.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = '00';
+        }
 
-            // Start stopwatch
+        function startStopwatch() {
             if (stopwatchInterval === null) {
                 const startTime = Date.now() - stopwatchTime;
                 stopwatchInterval = setInterval(function() {
@@ -168,6 +175,29 @@
                     updateStopwatchDisplay();
                 }, 10);
             }
+        }
+
+        function startCountdownThenRun() {
+            if (countdownInterval !== null || timer !== null || stopwatchInterval !== null) {
+                return;
+            }
+            let countdownRemaining = 3;
+            updateCountdownDisplay(countdownRemaining);
+            countdownInterval = setInterval(function() {
+                countdownRemaining -= 1;
+                if (countdownRemaining > 0) {
+                    updateCountdownDisplay(countdownRemaining);
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    startMetronome();
+                    startStopwatch();
+                }
+            }, 1000);
+        }
+
+        document.getElementById('startBtn').addEventListener('click', function() {
+            startCountdownThenRun();
         });
 
         document.getElementById('pauseBtn').addEventListener('click', function() {
@@ -175,6 +205,13 @@
             if (timer !== null) {
                 clearTimeout(timer);
                 timer = null;
+            }
+
+            // Pause countdown
+            if (countdownInterval !== null) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                updateStopwatchDisplay();
             }
 
             // Pause stopwatch
@@ -189,6 +226,12 @@
             if (timer !== null) {
                 clearTimeout(timer);
                 timer = null;
+            }
+
+            // Stop countdown
+            if (countdownInterval !== null) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
             }
 
             // Stop and reset stopwatch
