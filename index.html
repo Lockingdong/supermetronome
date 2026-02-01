@@ -75,6 +75,9 @@
             color: #007bb5;
             margin-bottom: 20px;
         }
+        #stopwatch.countdown {
+            color: #ff6f00;
+        }
         label {
             font-size: 16px;
             margin-top: 20px;
@@ -156,6 +159,7 @@
             const seconds = Math.floor((stopwatchTime / 1000) % 60);
             const minutes = Math.floor((stopwatchTime / (1000 * 60)) % 60);
 
+            document.getElementById('stopwatch').classList.remove('countdown');
             document.getElementById('milliseconds').textContent = milliseconds.toString().padStart(2, '0');
             document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
             document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
