@@ -166,7 +166,6 @@
         }
 
         function updateCountdownDisplay(secondsRemaining) {
-            document.getElementById('stopwatch').classList.add('countdown');
             document.getElementById('milliseconds').textContent = '00';
             document.getElementById('seconds').textContent = secondsRemaining.toString().padStart(2, '0');
             document.getElementById('minutes').textContent = '00';
